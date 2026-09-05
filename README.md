@@ -1,6 +1,6 @@
 # java-csv-toolkit
 
-[![CI](https://github.com/kasapdev/java-csv-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/kasapdev/java-csv-toolkit/actions/workflows/ci.yml)
+[![CI](https://github.com/kasapdev/java-csv-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/kasapdev/java-csv-toolkit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 
 A zero-dependency, RFC 4180-compliant CSV reader and writer for Java. Correctly handles
 quoted fields containing commas, embedded newlines, and escaped (`""`) double quotes, in
