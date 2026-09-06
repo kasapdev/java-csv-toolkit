@@ -34,6 +34,7 @@ import dev.kasapdev.csvtoolkit.CsvReader;
 import dev.kasapdev.csvtoolkit.CsvWriter;
 
 import java.util.List;
+import java.util.Map;
 
 public class Example {
     public static void main(String[] args) {
@@ -47,6 +48,13 @@ public class Example {
 
         List<List<String>> parsedBack = CsvReader.parse(csv);
         System.out.println(parsedBack.equals(table)); // true
+
+        // Header-aware mode: read rows as Map<String, String> keyed by column name.
+        List<Map<String, String>> people = CsvReader.parseWithHeader("name,age\nAda,36\nGrace,85");
+        System.out.println(people.get(0).get("name")); // "Ada"
+
+        String backToCsv = CsvWriter.writeWithHeader(List.of("name", "age"), people);
+        System.out.print(backToCsv);
     }
 }
 ```
@@ -58,6 +66,13 @@ public class Example {
 - `static List<List<String>> parse(String csv)` — parses CSV text into rows of fields.
 - `static List<List<String>> parse(Reader reader)` — same, reading from a `Reader`. Wraps
   the reader in a `BufferedReader` automatically if it doesn't support `mark`/`reset`.
+- `static List<Map<String, String>> parseWithHeader(String csv)` — parses CSV text using its
+  first row as column headers, returning one insertion-ordered `Map<String, String>` per
+  remaining row. A short row omits its unmatched trailing headers; a long row drops its extra
+  trailing fields; a duplicate header name keeps the rightmost column's value. Throws
+  `IllegalArgumentException` if the document has no rows at all.
+- `static List<Map<String, String>> parseWithHeader(Reader reader)` — same, reading from a
+  `Reader`.
 - Throws `CsvFormatException` on an unterminated quoted field.
 
 ### `CsvWriter`
@@ -66,6 +81,9 @@ public class Example {
   `\r\n` row terminators per RFC 4180. Any field containing a comma, double quote, or
   newline is quoted, with internal quotes doubled (`"` -&gt; `""`). `null` fields serialize
   as empty strings.
+- `static String writeWithHeader(List<String> header, List<Map<String, String>> records)` —
+  writes the header row followed by one row per record, looking up each header name in the
+  record's map; a missing key writes an empty field and keys not in the header are ignored.
 
 ## License
 

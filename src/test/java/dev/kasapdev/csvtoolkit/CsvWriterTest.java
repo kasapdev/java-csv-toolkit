@@ -2,6 +2,7 @@ package dev.kasapdev.csvtoolkit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class CsvWriterTest {
 
@@ -16,8 +17,48 @@ public final class CsvWriterTest {
         testRoundTripSimpleTable();
         testWritingEmptyRowListProducesEmptyString();
         testWritingRowWithZeroFieldsProducesJustTerminator();
+        testWriteWithHeaderBasic();
+        testWriteWithHeaderMissingKeyWritesEmptyField();
+        testWriteWithHeaderIgnoresKeysNotInHeader();
+        testWriteWithHeaderThenParseWithHeaderRoundTrips();
 
         TestKit.finish();
+    }
+
+    private static void testWriteWithHeaderBasic() {
+        List<String> header = List.of("name", "age");
+        List<Map<String, String>> records = List.of(Map.of("name", "Alice", "age", "30"));
+        String csv = CsvWriter.writeWithHeader(header, records);
+        TestKit.check("header row is written first, followed by one row per record",
+                csv.equals("name,age\r\nAlice,30\r\n"));
+    }
+
+    private static void testWriteWithHeaderMissingKeyWritesEmptyField() {
+        List<String> header = List.of("a", "b", "c");
+        List<Map<String, String>> records = List.of(Map.of("a", "1", "c", "3"));
+        String csv = CsvWriter.writeWithHeader(header, records);
+        TestKit.check("a record missing a header key writes an empty field in that column",
+                csv.equals("a,b,c\r\n1,,3\r\n"));
+    }
+
+    private static void testWriteWithHeaderIgnoresKeysNotInHeader() {
+        List<String> header = List.of("a", "b");
+        List<Map<String, String>> records = List.of(Map.of("a", "1", "b", "2", "z", "ignored"));
+        String csv = CsvWriter.writeWithHeader(header, records);
+        TestKit.check("a record key absent from the header is ignored rather than appended",
+                csv.equals("a,b\r\n1,2\r\n"));
+    }
+
+    private static void testWriteWithHeaderThenParseWithHeaderRoundTrips() {
+        List<String> header = List.of("Name", "Notes");
+        List<Map<String, String>> original = List.of(
+                Map.of("Name", "Ada, Lovelace", "Notes", "Said \"hello, world\"\nnew line too"));
+
+        String csv = CsvWriter.writeWithHeader(header, original);
+        List<Map<String, String>> parsedBack = CsvReader.parseWithHeader(csv);
+
+        TestKit.check("header round trip preserves commas, quotes, and embedded newlines",
+                parsedBack.equals(original));
     }
 
     private static void testWritingEmptyRowListProducesEmptyString() {
