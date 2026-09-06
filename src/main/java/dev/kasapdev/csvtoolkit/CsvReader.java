@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An RFC 4180-compliant CSV reader.
@@ -118,6 +120,56 @@ public final class CsvReader {
         }
 
         return rows;
+    }
+
+    /**
+     * Parses CSV text using its first row as a header, returning each subsequent row as an
+     * insertion-ordered {@code Map<String, String>} keyed by header name.
+     *
+     * <p>If a data row has fewer fields than there are headers, the unmatched trailing headers
+     * are simply omitted from that row's map. If a data row has more fields than there are
+     * headers, the extra trailing fields are dropped. Duplicate header names are resolved by
+     * keeping the value under the rightmost matching column, per normal {@code Map} put
+     * semantics.
+     *
+     * @param csv the CSV text; its first row is treated as column headers
+     * @return one map per data row (excluding the header row itself), in row order
+     * @throws IllegalArgumentException if the document is empty (no header row present)
+     */
+    public static List<Map<String, String>> parseWithHeader(String csv) {
+        try {
+            return parseWithHeader(new StringReader(csv));
+        } catch (IOException e) {
+            // StringReader never throws IOException in practice.
+            throw new UncheckedCsvException(e);
+        }
+    }
+
+    /**
+     * Same as {@link #parseWithHeader(String)}, reading from a {@link Reader}.
+     *
+     * @param reader the source reader; not closed by this method
+     * @return one map per data row (excluding the header row itself), in row order
+     * @throws IOException if the underlying reader fails
+     * @throws IllegalArgumentException if the document is empty (no header row present)
+     */
+    public static List<Map<String, String>> parseWithHeader(Reader reader) throws IOException {
+        List<List<String>> rows = parse(reader);
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("Cannot parse with header: document has no rows");
+        }
+        List<String> header = rows.get(0);
+        List<Map<String, String>> records = new ArrayList<>();
+        for (int r = 1; r < rows.size(); r++) {
+            List<String> row = rows.get(r);
+            int columns = Math.min(header.size(), row.size());
+            Map<String, String> record = new LinkedHashMap<>();
+            for (int i = 0; i < columns; i++) {
+                record.put(header.get(i), row.get(i));
+            }
+            records.add(record);
+        }
+        return records;
     }
 
     /**

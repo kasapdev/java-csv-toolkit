@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] - 2026-09-06
+
+### Added
+
+- `CsvReader.parseWithHeader(String|Reader)` — parses CSV text using its first row as column
+  headers, returning one insertion-ordered `Map<String, String>` per remaining row. Short rows
+  omit unmatched trailing headers, long rows drop extra trailing fields, and duplicate header
+  names resolve to the rightmost column.
+- `CsvWriter.writeWithHeader(List<String>, List<Map<String, String>>)` — the inverse: writes a
+  header row followed by one row per record map, looking up each header name in turn.
+
 ## [1.1.0] - 2026-09-06
 
 ### Added

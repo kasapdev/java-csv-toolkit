@@ -1,6 +1,8 @@
 package dev.kasapdev.csvtoolkit;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An RFC 4180-compliant CSV writer.
@@ -34,6 +36,33 @@ public final class CsvWriter {
             sb.append("\r\n");
         }
         return sb.toString();
+    }
+
+    /**
+     * Serializes a header row followed by one row per record map, matching the header's
+     * column order.
+     *
+     * <p>For each record, every header name is looked up in turn; a header with no
+     * corresponding entry in a given record writes as an empty field, the same as a
+     * {@code null} value does in {@link #write(List)}. Any entries in a record whose key is
+     * not among the headers are ignored.
+     *
+     * @param header  the column names, written as the first row, in order
+     * @param records the data rows, each keyed by (a subset of) the header names
+     * @return the CSV text: the header row followed by one row per record, each terminated by
+     *         {@code \r\n}
+     */
+    public static String writeWithHeader(List<String> header, List<Map<String, String>> records) {
+        List<List<String>> rows = new ArrayList<>(records.size() + 1);
+        rows.add(header);
+        for (Map<String, String> record : records) {
+            List<String> row = new ArrayList<>(header.size());
+            for (String key : header) {
+                row.add(record.get(key));
+            }
+            rows.add(row);
+        }
+        return write(rows);
     }
 
     /**
