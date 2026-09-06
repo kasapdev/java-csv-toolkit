@@ -14,8 +14,26 @@ public final class CsvWriterTest {
         testWriteMultipleRowsUsesCrlf();
         testRoundTripWithCommasQuotesAndEmbeddedNewlines();
         testRoundTripSimpleTable();
+        testWritingEmptyRowListProducesEmptyString();
+        testWritingRowWithZeroFieldsProducesJustTerminator();
 
         TestKit.finish();
+    }
+
+    private static void testWritingEmptyRowListProducesEmptyString() {
+        TestKit.check("writing an empty list of rows produces an empty string", CsvWriter.write(List.of()).equals(""));
+    }
+
+    private static void testWritingRowWithZeroFieldsProducesJustTerminator() {
+        // A row with zero fields writes as just the line terminator (no field content at all).
+        // Note this is not perfectly symmetric with CsvReader: reading "\r\n" back parses it as
+        // one row containing a single empty field, since the reader always emits at least one
+        // field per non-empty line. That is CsvReader's own documented flush behavior, not a
+        // defect in either component considered alone.
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(new ArrayList<>());
+        String csv = CsvWriter.write(rows);
+        TestKit.check("a row with zero fields writes as just the CRLF terminator", csv.equals("\r\n"));
     }
 
     private static void testPlainFieldNotQuoted() {

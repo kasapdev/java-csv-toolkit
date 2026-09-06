@@ -17,8 +17,38 @@ public final class CsvReaderTest {
         testEmptyQuotedField();
         testEmptyDocumentProducesNoRows();
         testUnterminatedQuoteThrows();
+        testBlankLineInMiddleOfDocument();
+        testSingleFieldNoDelimitersAtAll();
+        testSingleCommaOnlyDocument();
+        testSingleNewlineOnlyDocument();
 
         TestKit.finish();
+    }
+
+    private static void testBlankLineInMiddleOfDocument() {
+        List<List<String>> rows = CsvReader.parse("a,b\n\nc,d");
+        TestKit.check("blank line produces three rows total", rows.size() == 3);
+        TestKit.check("first row correct", rows.get(0).equals(List.of("a", "b")));
+        TestKit.check("blank line parses as a single row with one empty field", rows.get(1).equals(List.of("")));
+        TestKit.check("third row correct", rows.get(2).equals(List.of("c", "d")));
+    }
+
+    private static void testSingleFieldNoDelimitersAtAll() {
+        List<List<String>> rows = CsvReader.parse("hello");
+        TestKit.check("a document with no comma or newline parses as one row", rows.size() == 1);
+        TestKit.check("that one row has exactly one field", rows.get(0).equals(List.of("hello")));
+    }
+
+    private static void testSingleCommaOnlyDocument() {
+        List<List<String>> rows = CsvReader.parse(",");
+        TestKit.check("a lone comma parses as one row", rows.size() == 1);
+        TestKit.check("that row has two empty fields", rows.get(0).equals(List.of("", "")));
+    }
+
+    private static void testSingleNewlineOnlyDocument() {
+        List<List<String>> rows = CsvReader.parse("\n");
+        TestKit.check("a lone newline produces exactly one row, not two", rows.size() == 1);
+        TestKit.check("that row has a single empty field", rows.get(0).equals(List.of("")));
     }
 
     private static void testSimpleUnquotedFields() {
