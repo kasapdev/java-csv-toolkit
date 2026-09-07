@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-09-07
+
+### Added
+
+- `CsvReader.stream(Reader)` and the new `CsvStreamReader` class — a genuinely streaming,
+  row-at-a-time CSV reading API. `CsvStreamReader` implements `Iterator<List<String>>`,
+  `Iterable<List<String>>`, and `Closeable`, and pulls characters from the underlying `Reader`
+  only as rows are requested, never buffering more than the current row's fields. It applies
+  the identical RFC 4180 dialect rules as `CsvReader.parse(Reader)` (quoted fields, embedded
+  commas/newlines, escaped `""` quotes), verified by a test that parses a 50,000-row CSV both
+  ways and asserts the results are identical row-for-row, plus a dedicated test proving the
+  reader does not consume the whole document up front.
+
 ## [1.2.0] - 2026-09-06
 
 ### Added
