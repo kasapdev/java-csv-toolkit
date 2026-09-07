@@ -123,6 +123,24 @@ public final class CsvReader {
     }
 
     /**
+     * Returns a streaming, row-at-a-time view over a CSV document read incrementally from a
+     * {@link Reader}, without loading the whole document into memory.
+     *
+     * <p>This is an alternative to {@link #parse(Reader)} for large documents: rather than
+     * returning a fully materialized {@code List<List<String>>}, it returns a
+     * {@link CsvStreamReader} that pulls characters from {@code reader} only as rows are
+     * requested. Applies the identical dialect rules as {@link #parse(Reader)} and produces
+     * identical rows given identical input.
+     *
+     * @param reader the source reader; not closed by this method — close the returned
+     *               {@link CsvStreamReader} (which closes {@code reader} in turn) when done
+     * @return a lazily-evaluated iterator/iterable over the document's rows
+     */
+    public static CsvStreamReader stream(Reader reader) {
+        return new CsvStreamReader(reader);
+    }
+
+    /**
      * Parses CSV text using its first row as a header, returning each subsequent row as an
      * insertion-ordered {@code Map<String, String>} keyed by header name.
      *
